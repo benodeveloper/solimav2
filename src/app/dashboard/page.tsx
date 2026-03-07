@@ -12,11 +12,8 @@ import { Channel } from '@/src/db/schema';
  * Author: benodeveloper
  */
 export default async function DashboardPage() {
-  const session = await getSession();
-  const userId = session.user.id;
-
-  const stats = await ChannelService.getStats(userId);
-  const channels: Channel[] = await ChannelService.getChannelsByUserId(userId);
+  const stats = await ChannelService.getStats();
+  const channels: Channel[] = await ChannelService.getChannels(10);
   const recentChannels = channels
     .sort((a, b) => (b.created_at?.getTime() || 0) - (a.created_at?.getTime() || 0))
     .slice(0, 5);

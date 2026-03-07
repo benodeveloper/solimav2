@@ -5,8 +5,29 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1772890475822,
-      "tag": "0000_gigantic_ironclad",
+      "when": 1772892835099,
+      "tag": "0000_create_users_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1772892853672,
+      "tag": "0001_create_channels_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772893194801,
+      "tag": "0002_young_next_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1772893532727,
+      "tag": "0003_tan_namora",
       "breakpoints": true
     }
   ]

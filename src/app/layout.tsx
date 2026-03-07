@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Manage your channels with ease using Solima.',
 };
 
+import QueryProvider from '@/src/lib/query-provider';
+
 /**
  * Root Layout for the application.
  * Author: benodeveloper
@@ -24,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body suppressHydrationWarning className="bg-slate-50 font-sans text-slate-900 antialiased">
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

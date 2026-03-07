@@ -1,26 +1,27 @@
 import { db } from '@/src/db';
 import { channels } from '@/src/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 /**
  * Service for handling channel management logic.
  * Author: benodeveloper
+ * Website: https://www.benodeveloper.com
  */
 export class ChannelService {
   /**
-   * Gets all channels for a specific user.
+   * Gets all channels.
    */
-  static async getChannelsByUserId(userId: number) {
-    return await db.select().from(channels).where(eq(channels.user_id, userId));
+  static async getChannels() {
+    return await db.select().from(channels);
   }
 
   /**
-   * Gets a single channel by ID and user ID for security.
+   * Gets a single channel by ID.
    */
-  static async getChannelById(id: number, userId: number) {
+  static async getChannelById(id: number) {
     const results = await db.select()
       .from(channels)
-      .where(and(eq(channels.id, id), eq(channels.user_id, userId)))
+      .where(eq(channels.id, id))
       .limit(1);
     return results[0] || null;
   }
@@ -28,45 +29,47 @@ export class ChannelService {
   /**
    * Creates a new channel.
    */
-  static async createChannel(userId: number, data: { name: string; description?: string }) {
+  static async createChannel(data: { name: string; num?: number; is_adult?: boolean; status?: string }) {
     return await db.insert(channels).values({
-      user_id: userId,
       name: data.name,
-      description: data.description,
+      num: data.num,
+      is_adult: data.is_adult,
+      status: data.status as any,
     });
   }
 
   /**
    * Updates an existing channel.
    */
-  static async updateChannel(id: number, userId: number, data: { name: string; description?: string; status?: string }) {
+  static async updateChannel(id: number, data: { name: string; num?: number; is_adult?: boolean; status?: string }) {
     return await db.update(channels)
       .set({
         name: data.name,
-        description: data.description,
+        num: data.num,
+        is_adult: data.is_adult,
         status: data.status as any,
         updated_at: new Date(),
       })
-      .where(and(eq(channels.id, id), eq(channels.user_id, userId)));
+      .where(eq(channels.id, id));
   }
 
   /**
    * Deletes a channel.
    */
-  static async deleteChannel(id: number, userId: number) {
+  static async deleteChannel(id: number) {
     return await db.delete(channels)
-      .where(and(eq(channels.id, id), eq(channels.user_id, userId)));
+      .where(eq(channels.id, id));
   }
 
   /**
-   * Gets summary stats for a user.
+   * Gets summary stats.
    */
-  static async getStats(userId: number) {
-    const userChannels = await this.getChannelsByUserId(userId);
+  static async getStats() {
+    const allChannels = await this.getChannels();
     return {
-      total: userChannels.length,
-      active: userChannels.filter((c: any) => c.status === 'active').length,
-      inactive: userChannels.filter((c: any) => c.status === 'inactive').length,
+      total: allChannels.length,
+      active: allChannels.filter((c: any) => c.status === 'active').length,
+      inactive: allChannels.filter((c: any) => c.status !== 'active').length,
     };
   }
 }

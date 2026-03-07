@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Radio, 
-  Settings, 
-  LogOut, 
-  PlusCircle, 
-  ChevronLeft, 
-  ChevronRight 
+import {
+  LayoutDashboard,
+  Radio,
+  Settings,
+  LogOut,
+  PlusCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { logout } from '@/src/actions/auth.actions';
-import { cn } from '@/src/lib/utils'; // Assuming this utility exists or I'll create it
+import { cn } from '@/src/lib/utils';
 
 /**
  * Sidebar component for the dashboard.
@@ -26,7 +26,7 @@ export default function Sidebar() {
   // Update CSS variable for sidebar width
   useEffect(() => {
     document.documentElement.style.setProperty(
-      '--sidebar-width', 
+      '--sidebar-width',
       isCollapsed ? '80px' : '260px'
     );
   }, [isCollapsed]);
@@ -39,7 +39,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside 
+    <aside
       className={cn(
         "fixed left-0 top-0 h-full bg-slate-950 border-r border-slate-800 flex flex-col transition-all duration-300 z-50",
         isCollapsed ? "w-[80px]" : "w-[260px]"
@@ -78,12 +78,12 @@ export default function Sidebar() {
               )}
               title={isCollapsed ? item.name : ""}
             >
-              <Icon 
-                size={20} 
+              <Icon
+                size={20}
                 className={cn(
                   "transition-colors",
                   isActive ? "text-emerald-400" : "text-slate-500 group-hover:text-slate-300"
-                )} 
+                )}
               />
               {!isCollapsed && <span className="animate-in fade-in slide-in-from-left-2 duration-300">{item.name}</span>}
             </Link>

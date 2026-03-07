@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { ImageIcon } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { Channel } from '@/src/db/schema';
 import Button from '@/src/components/ui/Button';
 import Input from '@/src/components/ui/Input';
@@ -11,9 +12,6 @@ interface ChannelFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-import { useRef } from 'react';
-import { ImageIcon } from 'lucide-react';
 
 /**
  * Modern Channel Form for Create and Edit operations.
@@ -44,7 +42,7 @@ export default function ChannelForm({ channel, onSuccess, onCancel }: ChannelFor
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    
+
     const result = isEditing
       ? await updateChannelAction(channel.id, formData)
       : await createChannel(formData);
@@ -66,7 +64,7 @@ export default function ChannelForm({ channel, onSuccess, onCancel }: ChannelFor
             Channel Logo
           </label>
           <div className="flex items-center gap-4">
-            <div 
+            <div
               onClick={() => fileInputRef.current?.click()}
               className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 transition-all hover:border-emerald-300 hover:bg-emerald-50"
             >
@@ -89,13 +87,13 @@ export default function ChannelForm({ channel, onSuccess, onCancel }: ChannelFor
                 Recommended size: 200x200px. <br />
                 Supports JPG, PNG or WEBP.
               </p>
-              <input 
-                type="file" 
+              <input
+                type="file"
                 name="logo"
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 accept="image/*"
-                className="hidden" 
+                className="hidden"
               />
             </div>
           </div>

@@ -12,12 +12,12 @@ import {
 } from '@tanstack/react-table';
 import { Channel } from '@/src/db/schema';
 import { useState } from 'react';
-import { Edit2, Trash2, Search, MoreHorizontal, Filter, ChevronUp, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Search, Filter, ChevronUp, ChevronDown, Radio } from 'lucide-react';
 import Button from '@/src/components/ui/Button';
 import { deleteChannelAction } from '@/src/actions/channel.actions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Modal from '@/src/components/ui/Modal';
-import ChannelForm from '@/src/components/dashboard/ChannelForm';
+import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 
 interface ChannelTableProps {
@@ -25,8 +25,6 @@ interface ChannelTableProps {
 }
 
 const columnHelper = createColumnHelper<Channel>();
-
-import { useRouter } from 'next/navigation';
 
 /**
  * Advanced Channel Table using TanStack Table.
@@ -99,8 +97,8 @@ export default function ChannelTable({ data }: ChannelTableProps) {
           <span className={clsx(
             "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
             status === 'active' ? "bg-emerald-50 text-emerald-700 ring-emerald-600/10" :
-            status === 'inactive' ? "bg-amber-50 text-amber-700 ring-amber-600/10" :
-            "bg-slate-50 text-slate-700 ring-slate-600/10"
+              status === 'inactive' ? "bg-amber-50 text-amber-700 ring-amber-600/10" :
+                "bg-slate-50 text-slate-700 ring-slate-600/10"
           )}>
             {status}
           </span>

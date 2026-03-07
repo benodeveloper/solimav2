@@ -12,7 +12,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "create-user": "npx tsx --env-file=.env scripts/create-user.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync-live-streams": "npx tsx --env-file=.env scripts/sync-live-streams.ts"
   },
   "dependencies": {
     "@google/genai": "^1.17.0",

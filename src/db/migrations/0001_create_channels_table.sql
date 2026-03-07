@@ -1,6 +1,5 @@
 CREATE TABLE `channels` (
 	`id` serial AUTO_INCREMENT NOT NULL,
-	`user_id` int NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`num` int,
 	`is_adult` boolean DEFAULT false,

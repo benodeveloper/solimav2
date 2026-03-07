@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "bcd0ef2f-bf97-4323-b3b9-a9eba4428ad6",
-  "prevId": "0cbe59a0-5b8f-4dca-a147-9bb4686ca27e",
+  "id": "8a032d92-5eee-40e0-93d2-6cd13a600ab7",
+  "prevId": "05cadaf4-94bb-47f8-a375-dfb5634e2005",
   "tables": {
     "channels": {
       "name": "channels",
@@ -13,13 +13,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
         },
         "name": {
           "name": "name",

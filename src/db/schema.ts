@@ -1,4 +1,4 @@
-import { mysqlTable, serial, varchar, timestamp, text, int, boolean } from 'drizzle-orm/mysql-core';
+import { mysqlTable, serial, varchar, timestamp, text, int, boolean, json, tinyint } from 'drizzle-orm/mysql-core';
 
 export const users = mysqlTable('users', {
   id: serial('id').primaryKey(),
@@ -37,9 +37,42 @@ export const media = mysqlTable('media', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const liveCategories = mysqlTable('live_categories', {
+  id: int('id').primaryKey().autoincrement(),
+  category_id: varchar('category_id', { length: 255 }).notNull().unique(),
+  category_name: varchar('category_name', { length: 255 }).notNull(),
+  parent_id: varchar('parent_id', { length: 255 }),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const liveStreams = mysqlTable('live_streams', {
+  id: int('id').primaryKey().autoincrement(),
+  num: int('num'),
+  name: varchar('name', { length: 255 }).notNull(),
+  stream_type: varchar('stream_type', { length: 50 }),
+  stream_id: varchar('stream_id', { length: 255 }).notNull().unique(),
+  stream_icon: text('stream_icon'),
+  epg_channel_id: varchar('epg_channel_id', { length: 255 }),
+  added: varchar('added', { length: 255 }),
+  is_adult: boolean('is_adult').default(false),
+  category_id: int('category_id').references(() => liveCategories.id),
+  category_ids: json("category_ids").$type<number[]>(),
+  custom_sid: varchar("custom_sid", { length: 255 }),
+  direct_source: text("direct_source"),
+  tv_archive_duration: int("tv_archive_duration").default(0),
+  tv_archive: tinyint("tv_archive").default(0),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
 export type NewChannel = typeof channels.$inferInsert;
 export type Media = typeof media.$inferSelect;
 export type NewMedia = typeof media.$inferInsert;
+export type LiveCategory = typeof liveCategories.$inferSelect;
+export type NewLiveCategory = typeof liveCategories.$inferInsert;
+export type LiveStream = typeof liveStreams.$inferSelect;
+export type NewLiveStream = typeof liveStreams.$inferInsert;

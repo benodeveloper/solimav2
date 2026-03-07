@@ -76,6 +76,7 @@ describe('StreamingApiService (Integration)', () => {
           expect(items[0]).toHaveProperty('category_ids');
           expect(items[0]).toHaveProperty('custom_sid');
           expect(items[0]).toHaveProperty('direct_source');
+          expect(items[0]).toHaveProperty('tv_archive');
           expect(items[0]).toHaveProperty('tv_archive_duration');
           console.log(`Found ${items.length} streams in category ${categoryId}.`);
         }

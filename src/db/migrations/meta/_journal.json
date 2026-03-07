@@ -5,29 +5,36 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1772892835099,
+      "when": 1772926240624,
       "tag": "0000_create_users_table",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1772892853672,
+      "when": 1772926253944,
       "tag": "0001_create_channels_table",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "5",
-      "when": 1772893194801,
-      "tag": "0002_young_next_avengers",
+      "when": 1772926270137,
+      "tag": "0002_create_media_table",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "5",
-      "when": 1772893532727,
-      "tag": "0003_tan_namora",
+      "when": 1772926283774,
+      "tag": "0003_create_live_categories_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1772926300904,
+      "tag": "0004_create_live_streams_table",
       "breakpoints": true
     }
   ]

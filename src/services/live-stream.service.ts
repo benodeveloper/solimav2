@@ -1,6 +1,6 @@
 import { db } from '@/src/db';
-import { liveCategories, liveStreams, NewLiveCategory, NewLiveStream } from '@/src/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { liveCategories, liveStreams, NewLiveCategory, NewLiveStream, LiveStream, LiveCategory } from '@/src/db/schema';
+import { eq, and, like, or, sql, inArray, desc, asc } from 'drizzle-orm';
 
 /**
  * Service for handling Live Streams and Categories persistence.
@@ -41,7 +41,6 @@ export class LiveStreamService {
 
   /**
    * Upserts a live stream.
-   * @param categoryId - The local database category ID.
    * @param data - The stream data from the API.
    */
   static async upsertStream(data: {
@@ -84,6 +83,85 @@ export class LiveStreamService {
    */
   static async getCategories() {
     return await db.select().from(liveCategories);
+  }
+
+  /**
+   * Gets paginated and filtered live categories.
+   * @param page - Current page.
+   * @param limit - Items per page.
+   * @param search - Search term for category name.
+   */
+  static async getPaginatedCategories(page: number = 1, limit: number = 20, search: string = '') {
+    const offset = (page - 1) * limit;
+    const whereClause = search ? like(liveCategories.category_name, `%${search}%`) : undefined;
+
+    const [items, countResult] = await Promise.all([
+      db.select()
+        .from(liveCategories)
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(asc(liveCategories.category_name)),
+      db.select({ count: sql<number>`count(*)` })
+        .from(liveCategories)
+        .where(whereClause)
+    ]);
+
+    return {
+      items,
+      total: countResult[0].count,
+      page,
+      limit,
+      totalPages: Math.ceil(countResult[0].count / limit)
+    };
+  }
+
+  /**
+   * Gets paginated and filtered streams.
+   * @param options - Filtering and pagination options.
+   */
+  static async getPaginatedStreams(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryIds?: number[];
+  }) {
+    const { page = 1, limit = 10, search = '', categoryIds = [] } = options;
+    const offset = (page - 1) * limit;
+
+    const filters = [];
+    if (search) {
+      filters.push(like(liveStreams.name, `%${search}%`));
+    }
+    if (categoryIds.length > 0) {
+      filters.push(inArray(liveStreams.category_id, categoryIds));
+    }
+
+    const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+    const [items, countResult] = await Promise.all([
+      db.select({
+        stream: liveStreams,
+        category: liveCategories
+      })
+        .from(liveStreams)
+        .leftJoin(liveCategories, eq(liveStreams.category_id, liveCategories.id))
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(liveStreams.created_at)),
+      db.select({ count: sql<number>`count(*)` })
+        .from(liveStreams)
+        .where(whereClause)
+    ]);
+
+    return {
+      items,
+      total: countResult[0].count,
+      page,
+      limit,
+      totalPages: Math.ceil(countResult[0].count / limit)
+    };
   }
 
   /**

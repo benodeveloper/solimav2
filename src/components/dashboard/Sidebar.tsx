@@ -10,7 +10,8 @@ import {
   LogOut,
   PlusCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Tv
 } from 'lucide-react';
 import { logout } from '@/src/actions/auth.actions';
 import { cn } from '@/src/lib/utils';
@@ -34,6 +35,7 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Channels', href: '/dashboard/channels', icon: Radio },
+    { name: 'Live Streams', href: '/dashboard/live-streams', icon: Tv },
     { name: 'Create Channel', href: '/dashboard/channels/new', icon: PlusCircle },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];

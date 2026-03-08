@@ -36,6 +36,13 @@
       "when": 1772926300904,
       "tag": "0004_create_live_streams_table",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1772928767088,
+      "tag": "0005_create_credentials_table",
+      "breakpoints": true
     }
   ]
 }

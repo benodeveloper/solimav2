@@ -66,6 +66,17 @@ export const liveStreams = mysqlTable('live_streams', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const credentials = mysqlTable("credentials", {
+  id: serial("id").primaryKey(),
+  host: varchar("host", { length: 255 }).notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+  password: varchar("password", { length: 255 }).notNull(),
+  fetched_at: timestamp("fetched_at").defaultNow(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+  expires_at: timestamp("expires_at").notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -76,3 +87,5 @@ export type LiveCategory = typeof liveCategories.$inferSelect;
 export type NewLiveCategory = typeof liveCategories.$inferInsert;
 export type LiveStream = typeof liveStreams.$inferSelect;
 export type NewLiveStream = typeof liveStreams.$inferInsert;
+export type Credential = typeof credentials.$inferSelect;
+export type NewCredential = typeof credentials.$inferInsert;

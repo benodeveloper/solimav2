@@ -1,19 +1,19 @@
 import { StreamingApiService } from '../src/services/streaming-api.service';
 import { LiveStreamService } from '../src/services/live-stream.service';
+import { CredentialsService } from '@/src/services/credentials.service';
 
 async function main() {
-  const url = process.env.STREAMING_API_URL;
-  const username = process.env.STREAMING_API_USERNAME;
-  const password = process.env.STREAMING_API_PASSWORD;
-
-  if (!url || !username || !password) {
-    console.error('Error: Streaming API credentials are not set in environment variables.');
-    process.exit(1);
+  const creds = await CredentialsService.getLatestCredentials();
+  if (!creds) {
+    throw new Error("No credentials available. Please run crawl-credentials first.");
+  }
+  if (new Date(creds.expires_at) < new Date()) {
+    throw new Error("Credentials have expired. Please refresh credentials.");
   }
 
   console.log('--- Starting Live Streams Sync ---');
 
-  const api = new StreamingApiService(url, username, password);
+  const api = new StreamingApiService(creds.host, creds.username, creds.password);
 
   try {
     console.log('Fetching live categories...');

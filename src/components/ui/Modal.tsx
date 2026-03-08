@@ -3,12 +3,15 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { clsx } from 'clsx';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
+  noPadding?: boolean;
 }
 
 /**
@@ -16,7 +19,16 @@ interface ModalProps {
  * Author: benodeveloper
  * Website: https://www.benodeveloper.com
  */
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, size = 'lg', noPadding = false }: ModalProps) {
+  const sizeClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
+    '4xl': 'max-w-4xl',
+  };
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -47,7 +59,10 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-slate-200"
+              className={clsx(
+                "w-full overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-slate-200",
+                sizeClasses[size]
+              )}
             >
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                 <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
@@ -58,7 +73,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="p-6">
+              <div className={clsx(noPadding ? "p-0" : "p-6")}>
                 {children}
               </div>
             </motion.div>

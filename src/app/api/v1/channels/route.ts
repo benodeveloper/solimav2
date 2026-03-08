@@ -32,18 +32,18 @@ export async function GET(request: NextRequest) {
     const creds = await CredentialsService.getLatestCredentials();
 
     if (!creds) {
-        return NextResponse.json({ error: 'Internal Error: Streaming credentials not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'Internal Error: Streaming credentials not configured' }, { status: 500 });
     }
 
     // Process sources to include final streaming URL
-    const baseUrl = request.nextUrl.origin;
+    const baseUrl = process.env.BASE_URL || "http://localhost";
     const items = data.items.map(channel => ({
       ...channel,
-      logo_url: channel.media.find(m => m.collection === 'logo')?.conversions?.thumbnail 
+      logo_url: channel.media.find(m => m.collection === 'logo')?.conversions?.thumbnail
         ? `${baseUrl}${channel.media.find(m => m.collection === 'logo')?.conversions?.thumbnail}`
-        : channel.media.find(m => m.collection === 'logo') 
-            ? `${baseUrl}/uploads/${channel.media.find(m => m.collection === 'logo')?.file_name}`
-            : null,
+        : channel.media.find(m => m.collection === 'logo')
+          ? `${baseUrl}/uploads/${channel.media.find(m => m.collection === 'logo')?.file_name}`
+          : null,
       sources: channel.sources.map(s => ({
         ...s,
         url: `${creds.host}/live/${creds.username}/${creds.password}/${s.stream_id}.${s.extension}`
@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ...data,
-      items
+      items,
+      expired_at: creds.expires_at.toISOString()
     });
   } catch (error) {
     console.error('API Error:', error);

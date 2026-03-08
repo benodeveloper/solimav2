@@ -113,6 +113,37 @@ export const apiKeys = mysqlTable('api_keys', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const vodCategories = mysqlTable('vod_categories', {
+  id: int('id').primaryKey().autoincrement(),
+  category_id: varchar('category_id', { length: 255 }).notNull().unique(),
+  category_name: varchar('category_name', { length: 255 }).notNull(),
+  parent_id: varchar('parent_id', { length: 255 }),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const vodStreams = mysqlTable('vod_streams', {
+  id: serial('id').primaryKey(),
+  num: int('num'),
+  name: text('name').notNull(),
+  stream_type: varchar('stream_type', { length: 50 }).default('movie'),
+  stream_id: int('stream_id'),
+  stream_icon: text('stream_icon'),
+  rating: varchar('rating', { length: 50 }),
+  rating_5based: varchar('rating_5based', { length: 50 }),
+  tmdb: varchar('tmdb', { length: 50 }),
+  trailer: varchar('trailer', { length: 255 }),
+  added: int('added'),
+  is_adult: tinyint('is_adult').default(0),
+  category_id: int('category_id').references(() => vodCategories.id),
+  category_ids: json("category_ids").$type<number[]>(),
+  container_extension: varchar('container_extension', { length: 20 }),
+  custom_sid: varchar("custom_sid", { length: 255 }),
+  direct_source: text("direct_source"),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -123,6 +154,10 @@ export type LiveCategory = typeof liveCategories.$inferSelect;
 export type NewLiveCategory = typeof liveCategories.$inferInsert;
 export type LiveStream = typeof liveStreams.$inferSelect;
 export type NewLiveStream = typeof liveStreams.$inferInsert;
+export type VodCategory = typeof vodCategories.$inferSelect;
+export type NewVodCategory = typeof vodCategories.$inferInsert;
+export type VodStream = typeof vodStreams.$inferSelect;
+export type NewVodStream = typeof vodStreams.$inferInsert;
 export type Credential = typeof credentials.$inferSelect;
 export type NewCredential = typeof credentials.$inferInsert;
 export type SyncTask = typeof syncTasks.$inferSelect;

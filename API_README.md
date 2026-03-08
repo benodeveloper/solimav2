@@ -64,13 +64,24 @@ X-API-KEY: your_api_key_here
   "total": 1,
   "page": 1,
   "limit": 20,
-  "totalPages": 1
+  "totalPages": 1,
+  "expired_at": "2026-03-10T15:00:00.000Z"
 }
 ```
 
 ---
 
 ## Response Objects
+
+### Root Object
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `items` | `array` | List of channel objects. |
+| `total` | `number` | Total number of items. |
+| `page` | `number` | Current page. |
+| `limit` | `number` | Items per page. |
+| `totalPages` | `number` | Total number of pages. |
+| `expired_at` | `string` | ISO 8601 date when the current streaming credentials expire. |
 
 ### Channel Object
 | Field | Type | Description |

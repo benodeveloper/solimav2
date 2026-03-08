@@ -64,6 +64,20 @@
       "when": 1772986475601,
       "tag": "0008_create_api_keys_table",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1773011064437,
+      "tag": "0009_create_vod_categories_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1773011083397,
+      "tag": "0010_create_vod_streams_table",
+      "breakpoints": true
     }
   ]
 }

@@ -87,7 +87,7 @@ export class StreamingApiService {
   }
 
   public async getVodStreams(categoryId?: string | number): Promise<StreamingItem[]> {
-    const params = categoryId ? { category_id: category_id } : {};
+    const params = categoryId ? { category_id: categoryId } : {};
     return this.request<StreamingItem[]>('get_vod_streams', params);
   }
 

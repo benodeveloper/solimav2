@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Tv,
-  History
+  History,
+  Film
 } from 'lucide-react';
 import { logout } from '@/src/actions/auth.actions';
 import { cn } from '@/src/lib/utils';
@@ -37,6 +38,7 @@ export default function Sidebar() {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Channels', href: '/dashboard/channels', icon: Radio },
     { name: 'Live Streams', href: '/dashboard/live-streams', icon: Tv },
+    { name: 'VOD Streams', href: '/dashboard/vod-streams', icon: Film },
     { name: 'Sync Tasks', href: '/dashboard/sync-tasks', icon: History },
     { name: 'Create Channel', href: '/dashboard/channels/new', icon: PlusCircle },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },

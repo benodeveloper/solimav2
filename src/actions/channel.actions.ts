@@ -87,3 +87,14 @@ export async function deleteChannelAction(id: number) {
     return { error: 'Failed to delete channel' };
   }
 }
+
+export async function createChannelFromLiveStreamAction(streamId: number) {
+  try {
+    await ChannelService.createChannelFromLiveStream(streamId);
+    revalidatePath('/dashboard/channels');
+    return { success: true };
+  } catch (error) {
+    console.error('Action Error:', error);
+    return { error: 'Failed to create channel from live stream' };
+  }
+}

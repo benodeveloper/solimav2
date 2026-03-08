@@ -41,3 +41,39 @@ export async function getStreamUrlAction(streamId: string) {
   // Construct URL: {host}/live/{username}/{password}/{stream_id}.m3u8
   return `${creds.host}/live/${creds.username}/${creds.password}/${streamId}.m3u8`;
 }
+
+/**
+ * Server action to start the live streams synchronization process.
+ * @param selectedCategoryIds - Optional array of category IDs to sync.
+ * @returns The ID of the created sync task.
+ */
+export async function startSyncLiveStreamsAction(selectedCategoryIds?: number[]) {
+  const taskId = await LiveStreamService.createSyncTask();
+  
+  // Run sync in background (fire and forget in Server Action)
+  LiveStreamService.syncStreams(taskId, selectedCategoryIds).catch(console.error);
+  
+  return taskId;
+}
+
+/**
+ * Server action to get the status of a sync task.
+ * @param taskId - The ID of the sync task.
+ */
+export async function getSyncTaskAction(taskId: number) {
+  return await LiveStreamService.getSyncTask(taskId);
+}
+
+/**
+ * Server action to get paginated sync tasks.
+ */
+export async function getPaginatedSyncTasksAction(page: number, limit: number) {
+  return await LiveStreamService.getPaginatedSyncTasks(page, limit);
+}
+
+/**
+ * Server action to delete a sync task.
+ */
+export async function deleteSyncTaskAction(id: number) {
+  return await LiveStreamService.deleteSyncTask(id);
+}

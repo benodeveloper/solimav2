@@ -43,6 +43,13 @@
       "when": 1772928767088,
       "tag": "0005_create_credentials_table",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1772930856148,
+      "tag": "0006_create_sync_tasks_table",
+      "breakpoints": true
     }
   ]
 }

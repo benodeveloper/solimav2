@@ -1,6 +1,9 @@
 import { db } from '@/src/db';
 import { channels } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
+import { LiveStreamService } from './live-stream.service';
+import { MediaService } from './media.service';
+import { MediaCollection } from '@/src/enums/media-collection.enum';
 
 /**
  * Service for handling channel management logic.
@@ -8,6 +11,34 @@ import { eq } from 'drizzle-orm';
  * Website: https://www.benodeveloper.com
  */
 export class ChannelService {
+  /**
+   * Creates a channel from a live stream.
+   */
+  static async createChannelFromLiveStream(streamId: number) {
+    const stream = await LiveStreamService.getStreamById(streamId);
+    if (!stream) throw new Error('Live stream not found');
+
+    const [result] = await db.insert(channels).values({
+      name: stream.name,
+      num: stream.num,
+      is_adult: stream.is_adult,
+      status: 'active',
+    });
+
+    const channelId = (result as any).insertId;
+
+    if (stream.stream_icon) {
+      await MediaService.addMediaFromUrl(
+        channelId,
+        'channels',
+        stream.stream_icon,
+        MediaCollection.LOGO
+      );
+    }
+
+    return channelId;
+  }
+
   /**
    * Gets all channels.
    */

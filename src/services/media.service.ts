@@ -14,6 +14,54 @@ export class MediaService {
   private static UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
 
   /**
+   * Registers a file into the media table and saves it to disk from a remote URL.
+   */
+  static async addMediaFromUrl(
+    modelId: number,
+    modelType: string,
+    url: string,
+    collection: MediaCollection
+  ) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to fetch file from URL: ${url}`);
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const mimeType = response.headers.get('content-type') || 'image/jpeg';
+      const fileName = `${Date.now()}-from-url-${Math.random().toString(36).substring(7)}`;
+      const filePath = join(this.UPLOAD_DIR, fileName);
+
+      await mkdir(this.UPLOAD_DIR, { recursive: true });
+      await writeFile(filePath, buffer);
+
+      if (collection === MediaCollection.LOGO || collection === MediaCollection.AVATAR) {
+        await this.clearMediaCollection(modelId, modelType, collection);
+      }
+
+      const [result] = await db.insert(media).values({
+        model_id: modelId,
+        model_type: modelType,
+        collection_name: collection,
+        name: fileName,
+        file_name: fileName,
+        mime_type: mimeType,
+        size: buffer.length,
+        disk: 'public',
+        generated_conversions: JSON.stringify({
+          thumbnail: `/uploads/${fileName}`,
+          original: `/uploads/${fileName}`
+        })
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error adding media from URL:', error);
+      return null;
+    }
+  }
+
+  /**
    * Registers a file into the media table and saves it to disk.
    */
   static async addMedia(

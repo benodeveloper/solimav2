@@ -8,9 +8,10 @@ import {
 } from '@tanstack/react-table';
 import { LiveStream, LiveCategory } from '@/src/db/schema';
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, Radio, ExternalLink, Calendar, Play, Loader2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Radio, ExternalLink, Calendar, Play, Loader2, Plus } from 'lucide-react';
 import { getPaginatedStreamsAction, getStreamUrlAction } from '@/src/actions/live-stream.actions';
-import { useQuery } from '@tanstack/react-query';
+import { createChannelFromLiveStreamAction } from '@/src/actions/channel.actions';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import CategoryMultiSelect from './CategoryMultiSelect';
 import VideoPlayer from './VideoPlayer';
 import Modal from '@/src/components/ui/Modal';
@@ -36,6 +37,17 @@ export default function LiveStreamTable() {
   const [activeStream, setActiveStream] = useState<{ url: string; title: string } | null>(null);
   const [isFetchingUrl, setIsFetchingUrl] = useState<string | null>(null);
   const limit = 10;
+
+  const createChannelMutation = useMutation({
+    mutationFn: (streamId: number) => createChannelFromLiveStreamAction(streamId),
+    onSuccess: (res: any) => {
+      if (res.success) {
+        alert('Channel created successfully!');
+      } else {
+        alert(res.error || 'Failed to create channel');
+      }
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['live-streams', page, search, selectedCategoryIds],
@@ -146,9 +158,21 @@ export default function LiveStreamTable() {
       cell: (info) => (
         <div className="flex items-center justify-end gap-2">
           <button
+            onClick={() => createChannelMutation.mutate(info.row.original.stream.id)}
+            disabled={createChannelMutation.isPending}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 shadow-sm disabled:opacity-50"
+            title="Create Channel from Stream"
+          >
+            {createChannelMutation.isPending && createChannelMutation.variables === info.row.original.stream.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+          </button>
+          <button
             onClick={() => handlePlay(info.row.original.stream)}
             disabled={isFetchingUrl === info.row.original.stream.stream_id}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 shadow-sm disabled:opacity-50"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 shadow-sm disabled:opacity-50"
             title="Play Stream"
           >
             {isFetchingUrl === info.row.original.stream.stream_id ? (

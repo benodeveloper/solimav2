@@ -77,6 +77,18 @@ export const credentials = mysqlTable("credentials", {
   expires_at: timestamp("expires_at").notNull(),
 });
 
+export const syncTasks = mysqlTable('sync_tasks', {
+  id: serial('id').primaryKey(),
+  task_type: varchar('task_type', { length: 50 }).notNull(),
+  status: varchar('status', { length: 50 }).default('pending'),
+  progress: int('progress').default(0),
+  total_items: int('total_items').default(0),
+  current_item: varchar('current_item', { length: 255 }),
+  logs: text('logs'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -89,3 +101,5 @@ export type LiveStream = typeof liveStreams.$inferSelect;
 export type NewLiveStream = typeof liveStreams.$inferInsert;
 export type Credential = typeof credentials.$inferSelect;
 export type NewCredential = typeof credentials.$inferInsert;
+export type SyncTask = typeof syncTasks.$inferSelect;
+export type NewSyncTask = typeof syncTasks.$inferInsert;

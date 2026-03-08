@@ -1,6 +1,6 @@
 import { db } from '@/src/db';
-import { channels } from '@/src/db/schema';
-import { eq } from 'drizzle-orm';
+import { channels, sources, media } from '@/src/db/schema';
+import { eq, and, like, sql, desc } from 'drizzle-orm';
 import { LiveStreamService } from './live-stream.service';
 import { MediaService } from './media.service';
 import { MediaCollection } from '@/src/enums/media-collection.enum';
@@ -11,6 +11,65 @@ import { MediaCollection } from '@/src/enums/media-collection.enum';
  * Website: https://www.benodeveloper.com
  */
 export class ChannelService {
+  /**
+   * Gets paginated and filtered channels for API.
+   */
+  static async getPaginatedChannels(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const { page = 1, limit = 20, search = '' } = options;
+    const offset = (page - 1) * limit;
+
+    const whereClause = search ? like(channels.name, `%${search}%`) : undefined;
+
+    const [items, countResult] = await Promise.all([
+      db.select()
+        .from(channels)
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(channels.created_at)),
+      db.select({ count: sql<number>`count(*)` })
+        .from(channels)
+        .where(whereClause)
+    ]);
+
+    // Attach media and sources for each channel
+    const fullChannels = await Promise.all(items.map(async (channel) => {
+      const channelMedia = await MediaService.getMedia(channel.id, 'channels');
+      const channelSources = await db.select().from(sources).where(and(
+        eq(sources.streamable_id, channel.id),
+        eq(sources.streamable_type, 'channels')
+      ));
+
+      return {
+        ...channel,
+        media: channelMedia.map(m => ({
+          collection: m.collection_name,
+          file_name: m.file_name,
+          conversions: m.generated_conversions ? JSON.parse(m.generated_conversions) : null
+        })),
+        sources: channelSources.map(s => ({
+          label: s.label,
+          lang: s.lang,
+          quality: s.quality,
+          extension: s.extension,
+          stream_id: s.stream_id
+        }))
+      };
+    }));
+
+    return {
+      items: fullChannels,
+      total: countResult[0].count,
+      page,
+      limit,
+      totalPages: Math.ceil(countResult[0].count / limit)
+    };
+  }
+
   /**
    * Creates a channel from a live stream.
    */
@@ -26,6 +85,16 @@ export class ChannelService {
     });
 
     const channelId = (result as any).insertId;
+
+    // Create initial source
+    await db.insert(sources).values({
+      streamable_id: channelId,
+      streamable_type: 'channels',
+      stream_id: stream.stream_id.toString(),
+      label: 'Main Source',
+      stream_name: stream.name,
+      extension: 'm3u8',
+    });
 
     if (stream.stream_icon) {
       await MediaService.addMediaFromUrl(
@@ -47,14 +116,28 @@ export class ChannelService {
   }
 
   /**
-   * Gets a single channel by ID.
+   * Gets a single channel by ID with media and sources.
    */
   static async getChannelById(id: number) {
     const results = await db.select()
       .from(channels)
       .where(eq(channels.id, id))
       .limit(1);
-    return results[0] || null;
+    
+    if (results.length === 0) return null;
+    
+    const channel = results[0];
+    const media = await MediaService.getMedia(id, 'channels');
+    const channelSources = await db.select().from(sources).where(and(
+      eq(sources.streamable_id, id),
+      eq(sources.streamable_type, 'channels')
+    ));
+    
+    return {
+      ...channel,
+      media,
+      sources: channelSources
+    };
   }
 
   /**

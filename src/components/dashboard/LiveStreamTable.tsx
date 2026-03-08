@@ -5,17 +5,20 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  SortingState,
 } from '@tanstack/react-table';
 import { LiveStream, LiveCategory } from '@/src/db/schema';
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, Radio, ExternalLink, Calendar, Play, Loader2, Plus } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Radio, ExternalLink, Calendar, Play, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { getPaginatedStreamsAction, getStreamUrlAction } from '@/src/actions/live-stream.actions';
-import { createChannelFromLiveStreamAction } from '@/src/actions/channel.actions';
+import { createChannelFromLiveStreamAction, createChannelFromMultipleStreamsAction } from '@/src/actions/channel.actions';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import CategoryMultiSelect from './CategoryMultiSelect';
 import VideoPlayer from './VideoPlayer';
 import Modal from '@/src/components/ui/Modal';
+import Button from '@/src/components/ui/Button';
 import { clsx } from 'clsx';
+import { useRouter } from 'next/navigation';
 
 interface StreamWithCategory {
   stream: LiveStream;
@@ -25,33 +28,54 @@ interface StreamWithCategory {
 const columnHelper = createColumnHelper<StreamWithCategory>();
 
 /**
- * Live Stream Data Table with server-side pagination, search, and category filtering.
+ * Live Stream Data Table with server-side pagination, sorting, and multi-selection.
  * 
  * Author: benodeveloper
  * Website: https://www.benodeveloper.com
  */
 export default function LiveStreamTable() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [activeStream, setActiveStream] = useState<{ url: string; title: string } | null>(null);
   const [isFetchingUrl, setIsFetchingUrl] = useState<string | null>(null);
-  const limit = 10;
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['live-streams', page, limit, search, selectedCategoryIds, sorting],
+    queryFn: () => getPaginatedStreamsAction({ 
+      page, 
+      limit, 
+      search, 
+      categoryIds: selectedCategoryIds,
+      orderBy: sorting.length > 0 ? sorting[0].id.replace('stream_', '').replace('category_', '') : 'created_at',
+      orderDir: sorting.length > 0 ? (sorting[0].desc ? 'desc' : 'asc') : 'desc'
+    }),
+  });
 
   const createChannelMutation = useMutation({
     mutationFn: (streamId: number) => createChannelFromLiveStreamAction(streamId),
     onSuccess: (res: any) => {
-      if (res.success) {
-        alert('Channel created successfully!');
+      if (res.success && res.channelId) {
+        router.push(`/dashboard/channels/${res.channelId}/edit`);
       } else {
         alert(res.error || 'Failed to create channel');
       }
     },
   });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['live-streams', page, search, selectedCategoryIds],
-    queryFn: () => getPaginatedStreamsAction({ page, limit, search, categoryIds: selectedCategoryIds }),
+  const createBulkChannelMutation = useMutation({
+    mutationFn: (streamIds: number[]) => createChannelFromMultipleStreamsAction(streamIds),
+    onSuccess: (res: any) => {
+      if (res.success && res.channelId) {
+        router.push(`/dashboard/channels/${res.channelId}/edit`);
+      } else {
+        alert(res.error || 'Failed to create channel');
+      }
+    },
   });
 
   const handlePlay = async (stream: LiveStream) => {
@@ -68,6 +92,30 @@ export default function LiveStreamTable() {
   };
 
   const columns = useMemo(() => [
+    columnHelper.display({
+      id: 'select',
+      header: ({ table }) => (
+        <div className="px-1">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="px-1">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        </div>
+      ),
+    }),
     columnHelper.accessor('stream.num', {
       header: 'No.',
       cell: (info) => (
@@ -98,12 +146,6 @@ export default function LiveStreamTable() {
               </div>
               <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wide">
                 <span>ID: {info.row.original.stream.stream_id}</span>
-                {info.row.original.stream.stream_type && (
-                  <>
-                    <span className="h-1 w-1 rounded-full bg-slate-200" />
-                    <span>{info.row.original.stream.stream_type}</span>
-                  </>
-                )}
               </div>
             </div>
           </div>
@@ -123,45 +165,16 @@ export default function LiveStreamTable() {
         </span>
       ),
     }),
-    columnHelper.accessor('stream.tv_archive', {
-      header: 'Archive',
-      cell: (info) => (
-        <div className="flex flex-col gap-0.5">
-          <span className={clsx(
-            "text-xs font-semibold",
-            info.getValue() ? "text-emerald-600" : "text-slate-400"
-          )}>
-            {info.getValue() ? 'Available' : 'None'}
-          </span>
-          {info.getValue() && info.row.original.stream.tv_archive_duration ? (
-            <span className="text-[10px] text-slate-400 font-medium">
-              {info.row.original.stream.tv_archive_duration} days
-            </span>
-          ) : null}
-        </div>
-      ),
-    }),
-    columnHelper.accessor('stream.created_at', {
-      header: 'Added',
-      cell: (info) => (
-        <div className="flex items-center gap-1.5 text-slate-500">
-          <Calendar className="h-3.5 w-3.5 opacity-60" />
-          <span className="text-xs">
-            {new Date(info.getValue()!).toLocaleDateString()}
-          </span>
-        </div>
-      ),
-    }),
     columnHelper.display({
       id: 'actions',
       header: 'Actions',
       cell: (info) => (
         <div className="flex items-center justify-end gap-2">
           <button
-            onClick={() => createChannelMutation.mutate(info.row.original.stream.id)}
+            onClick={(e) => { e.stopPropagation(); createChannelMutation.mutate(info.row.original.stream.id); }}
             disabled={createChannelMutation.isPending}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 shadow-sm disabled:opacity-50"
-            title="Create Channel from Stream"
+            title="Create Channel"
           >
             {createChannelMutation.isPending && createChannelMutation.variables === info.row.original.stream.id ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -170,7 +183,7 @@ export default function LiveStreamTable() {
             )}
           </button>
           <button
-            onClick={() => handlePlay(info.row.original.stream)}
+            onClick={(e) => { e.stopPropagation(); handlePlay(info.row.original.stream); }}
             disabled={isFetchingUrl === info.row.original.stream.stream_id}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 shadow-sm disabled:opacity-50"
             title="Play Stream"
@@ -181,92 +194,162 @@ export default function LiveStreamTable() {
               <Play className="h-4 w-4 fill-current" />
             )}
           </button>
-          {info.row.original.stream.direct_source && (
-            <a
-              href={info.row.original.stream.direct_source}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 shadow-sm"
-              title="View Source"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          )}
         </div>
       ),
     }),
-  ], [isFetchingUrl]);
+  ], [isFetchingUrl, createChannelMutation.isPending]);
 
   const table = useReactTable({
     data: data?.items || [],
     columns,
+    state: {
+      sorting,
+      rowSelection,
+    },
+    onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.stream.id.toString(),
     manualPagination: true,
+    manualSorting: true,
   });
 
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    setPage(1);
-  };
+  const selectedStreamIds = useMemo(() => 
+    Object.keys(rowSelection).filter(key => rowSelection[key as keyof typeof rowSelection]).map(Number),
+    [rowSelection]
+  );
+  
+  const hasSelection = selectedStreamIds.length > 0;
 
-  const handleCategoryChange = (ids: number[]) => {
-    setSelectedCategoryIds(ids);
-    setPage(1);
+  const handleCreateFromSelection = () => {
+    createBulkChannelMutation.mutate(selectedStreamIds);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Filters Section */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 items-end">
-        <div className="lg:col-span-8">
-          <div className="relative group">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-500" />
-            <input
-              placeholder="Search by stream name or ID..."
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-11 pr-4 text-sm text-slate-900 transition-all focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+      {/* Header & Bulk Actions */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Live Library</h2>
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              {data?.total || 0} Total Streams
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {hasSelection && (
+              <Button 
+                onClick={handleCreateFromSelection}
+                disabled={createBulkChannelMutation.isPending}
+                className="bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-200 animate-in fade-in zoom-in duration-200"
+              >
+                {createBulkChannelMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Create Channel ({selectedStreamIds.length})
+              </Button>
+            )}
+            <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 p-1 shadow-sm">
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="text-xs font-bold text-slate-600 bg-transparent px-2 py-1.5 focus:outline-none cursor-pointer"
+              >
+                <option value={10}>10 rows</option>
+                <option value={25}>25 rows</option>
+                <option value={50}>50 rows</option>
+                <option value={100}>100 rows</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 items-end">
+          <div className="lg:col-span-8">
+            <div className="relative group">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-500" />
+              <input
+                placeholder="Search by stream name or ID..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-11 pr-4 text-sm text-slate-900 transition-all focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm font-medium"
+              />
+            </div>
+          </div>
+          <div className="lg:col-span-4">
+            <CategoryMultiSelect
+              selectedCategoryIds={selectedCategoryIds}
+              onChange={(ids) => { setSelectedCategoryIds(ids); setPage(1); }}
             />
           </div>
         </div>
-        <div className="lg:col-span-4">
-          <CategoryMultiSelect
-            selectedCategoryIds={selectedCategoryIds}
-            onChange={handleCategoryChange}
-          />
-        </div>
       </div>
 
-      {/* Table Content */}
+      {/* Table Section */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
                 {table.getHeaderGroups().map((headerGroup) => (
-                  headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-6 py-4 font-bold uppercase tracking-wider text-[11px] text-slate-500"
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))
+                  headerGroup.headers.map((header) => {
+                    const isSortable = header.column.getCanSort();
+                    const sortDir = header.column.getIsSorted();
+
+                    return (
+                      <th
+                        key={header.id}
+                        className={clsx(
+                          "px-6 py-4 font-bold uppercase tracking-wider text-[11px] text-slate-500",
+                          isSortable && "cursor-pointer select-none hover:text-slate-900 transition-colors"
+                        )}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <div className="flex items-center gap-1">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {isSortable && (
+                            <div className="text-slate-400">
+                              {sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : 
+                               sortDir === 'desc' ? <ArrowDown className="h-3 w-3" /> : 
+                               <ArrowUpDown className="h-3 w-3 opacity-30" />}
+                            </div>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
+                Array.from({ length: limit }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={6} className="px-6 py-6">
-                      <div className="h-10 bg-slate-50 rounded-lg w-full" />
-                    </td>
+                    {columns.map((_, j) => (
+                      <td key={j} className="px-6 py-6">
+                        <div className="h-4 bg-slate-50 rounded w-full" />
+                      </td>
+                    ))}
                   </tr>
                 ))
               ) : table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="group transition-colors hover:bg-slate-50/50">
+                  <tr 
+                    key={row.id} 
+                    onClick={() => row.toggleSelected()}
+                    className={clsx(
+                      "group cursor-pointer transition-colors",
+                      row.getIsSelected() ? "bg-emerald-50/30" : "hover:bg-slate-50/50"
+                    )}
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-6 py-4 text-slate-600">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -276,16 +359,8 @@ export default function LiveStreamTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                        <Radio className="h-8 w-8 text-slate-300" />
-                      </div>
-                      <div className="max-w-xs mx-auto">
-                        <p className="text-base font-bold text-slate-900">No streams found</p>
-                        <p className="mt-1 text-sm text-slate-500">We couldn't find any live streams matching your search or filters.</p>
-                      </div>
-                    </div>
+                  <td colSpan={columns.length} className="px-6 py-20 text-center text-slate-400">
+                    No streams found.
                   </td>
                 </tr>
               )}
@@ -293,8 +368,8 @@ export default function LiveStreamTable() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {data && data.totalPages > 1 && (
+        {/* Pagination Section */}
+        {data && data.totalPages > 0 && (
           <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/30 px-6 py-4">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Page</span>
@@ -307,7 +382,7 @@ export default function LiveStreamTable() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => p - 1)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-white shadow-sm"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 shadow-sm"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
@@ -315,7 +390,7 @@ export default function LiveStreamTable() {
               <button
                 disabled={page === data.totalPages}
                 onClick={() => setPage(p => p + 1)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-white shadow-sm"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 shadow-sm"
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
@@ -325,7 +400,7 @@ export default function LiveStreamTable() {
         )}
       </div>
 
-      {/* Video Player Modal */}
+      {/* Playback Modal */}
       <Modal
         isOpen={!!activeStream}
         onClose={() => setActiveStream(null)}

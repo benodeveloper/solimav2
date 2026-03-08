@@ -1,6 +1,7 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/src/db";
 import { credentials, type Credential, type NewCredential } from "@/src/db/schema";
+import { StreamingApiService } from "./streaming-api.service";
 
 /**
  * Service for handling API credentials persistence and status.
@@ -18,8 +19,7 @@ export interface CredentialsStatus {
 }
 
 export class CredentialsService {
-  private static readonly TTL_HOURS = 24;
-  private static readonly REFRESH_BEFORE_HOURS = 1;
+  private static readonly REFRESH_BEFORE_HOURS = 24;
 
   /**
    * Retrieves the latest credentials from the database.
@@ -43,18 +43,44 @@ export class CredentialsService {
     username: string;
     password: string;
   }): Promise<void> {
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + this.TTL_HOURS * 60 * 60 * 1000);
+    const api = new StreamingApiService(creds.host, creds.username, creds.password);
+    const auth = await api.authenticate();
+    
+    // exp_date is a unix timestamp as string
+    const expiresAt = new Date(parseInt(auth.user_info.exp_date) * 1000);
 
     const payload: NewCredential = {
       host: creds.host,
       username: creds.username,
       password: creds.password,
-      fetched_at: now,
+      fetched_at: new Date(),
       expires_at: expiresAt,
     };
 
     await db.insert(credentials).values(payload);
+  }
+
+  /**
+   * Refreshes the expiration date of the latest credentials by calling the API.
+   */
+  static async refreshCredentials(): Promise<void> {
+    const latest = await this.getLatestCredentials();
+    if (!latest) return;
+
+    try {
+      const api = new StreamingApiService(latest.host, latest.username, latest.password);
+      const auth = await api.authenticate();
+      const expiresAt = new Date(parseInt(auth.user_info.exp_date) * 1000);
+
+      await db.update(credentials)
+        .set({ 
+          expires_at: expiresAt,
+          fetched_at: new Date()
+        })
+        .where(eq(credentials.id, latest.id));
+    } catch (error) {
+      console.error("Failed to refresh credentials:", error);
+    }
   }
 
   /**

@@ -12,6 +12,8 @@ export async function getPaginatedStreamsAction(options: {
   limit?: number;
   search?: string;
   categoryIds?: number[];
+  orderBy?: string;
+  orderDir?: 'asc' | 'desc';
 }) {
   return await LiveStreamService.getPaginatedStreams(options);
 }

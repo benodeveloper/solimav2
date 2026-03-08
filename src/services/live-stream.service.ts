@@ -273,8 +273,10 @@ export class LiveStreamService {
     limit?: number;
     search?: string;
     categoryIds?: number[];
+    orderBy?: string;
+    orderDir?: 'asc' | 'desc';
   }) {
-    const { page = 1, limit = 10, search = '', categoryIds = [] } = options;
+    const { page = 1, limit = 10, search = '', categoryIds = [], orderBy = 'created_at', orderDir = 'desc' } = options;
     const offset = (page - 1) * limit;
 
     const filters = [];
@@ -287,6 +289,16 @@ export class LiveStreamService {
 
     const whereClause = filters.length > 0 ? and(...filters) : undefined;
 
+    // Handle dynamic sorting
+    let orderColumn: any;
+    switch (orderBy) {
+      case 'name': orderColumn = liveStreams.name; break;
+      case 'num': orderColumn = liveStreams.num; break;
+      case 'category_name': orderColumn = liveCategories.category_name; break;
+      case 'created_at':
+      default: orderColumn = liveStreams.created_at; break;
+    }
+
     const [items, countResult] = await Promise.all([
       db.select({
         stream: liveStreams,
@@ -297,7 +309,7 @@ export class LiveStreamService {
         .where(whereClause)
         .limit(limit)
         .offset(offset)
-        .orderBy(desc(liveStreams.created_at)),
+        .orderBy(orderDir === 'asc' ? asc(orderColumn) : desc(orderColumn)),
       db.select({ count: sql<number>`count(*)` })
         .from(liveStreams)
         .where(whereClause)

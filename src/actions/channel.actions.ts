@@ -90,11 +90,41 @@ export async function deleteChannelAction(id: number) {
 
 export async function createChannelFromLiveStreamAction(streamId: number) {
   try {
-    await ChannelService.createChannelFromLiveStream(streamId);
+    const channelId = await ChannelService.createChannelFromLiveStream(streamId);
     revalidatePath('/dashboard/channels');
-    return { success: true };
+    return { success: true, channelId };
   } catch (error) {
     console.error('Action Error:', error);
     return { error: 'Failed to create channel from live stream' };
+  }
+}
+
+export async function createChannelFromMultipleStreamsAction(streamIds: number[]) {
+  if (streamIds.length === 0) return { error: 'No streams selected' };
+
+  try {
+    // Create channel using the first stream
+    const firstStreamId = streamIds[0];
+    const channelId = await ChannelService.createChannelFromLiveStream(firstStreamId);
+
+    // If there are more streams, add them as sources
+    if (streamIds.length > 1) {
+      const remainingStreamIds = streamIds.slice(1);
+      const { SourceService } = await import('@/src/services/source.service');
+      const { LiveStreamService } = await import('@/src/services/live-stream.service');
+      
+      const streams = await Promise.all(
+        remainingStreamIds.map(id => LiveStreamService.getStreamById(id))
+      );
+      
+      const validStreams = streams.filter(Boolean);
+      await SourceService.addSourcesFromStreams(channelId, 'channels', validStreams);
+    }
+
+    revalidatePath('/dashboard/channels');
+    return { success: true, channelId };
+  } catch (error) {
+    console.error('Action Error:', error);
+    return { error: 'Failed to create channel from multiple streams' };
   }
 }

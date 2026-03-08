@@ -1,6 +1,4 @@
-import axios from 'axios';
-import { AxiosResponse } from 'axios';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosResponse, AxiosInstance } from 'axios';
 
 /**
  * Interfaces for Type Safety
@@ -119,4 +117,44 @@ export class StreamingApiService {
   public async getSimpleDataTable(streamId: string | number): Promise<any> {
     return this.request('get_simple_data_table', { stream_id: streamId });
   }
+
+  /**
+   * Authenticates the user and retrieves account information, including expiration.
+   */
+  public async authenticate(): Promise<StreamingAuthResponse> {
+    try {
+      const response: AxiosResponse<StreamingAuthResponse> = await this.client.get('player_api.php');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Unknown Auth Error';
+      throw new Error(`[StreamingApiService] authenticate failed: ${message}`);
+    }
+  }
+}
+
+export interface StreamingAuthResponse {
+  user_info: {
+    username: string;
+    password: string;
+    message: string;
+    auth: number;
+    status: string;
+    exp_date: string;
+    is_trial: string;
+    active_cons: string;
+    created_at: string;
+    max_connections: string;
+    allowed_output_formats: string[];
+  };
+  server_info: {
+    url: string;
+    port: string;
+    https_port: string;
+    server_protocol: string;
+    rtmp_port: string;
+    timezone: string;
+    timestamp_now: number;
+    time_now: string;
+    process: boolean;
+  };
 }

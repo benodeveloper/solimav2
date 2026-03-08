@@ -14,6 +14,8 @@
     "create-user": "npx tsx --env-file=.env scripts/create-user.ts",
     "test": "vitest run",
     "sync-live-streams": "npx tsx --env-file=.env scripts/sync-live-streams.ts",
+    "refresh-credentials": "npx tsx --env-file=.env scripts/refresh-credentials.ts",
+    "generate-api-key": "npx tsx --env-file=.env scripts/generate-api-key.ts",
     "crawl-credentials": "npx tsx --env-file=.env scripts/crawler-credentials.ts"
   },
   "dependencies": {

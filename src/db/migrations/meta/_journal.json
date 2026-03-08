@@ -50,6 +50,20 @@
       "when": 1772930856148,
       "tag": "0006_create_sync_tasks_table",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1772981147183,
+      "tag": "0007_create_sources_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1772986475601,
+      "tag": "0008_create_api_keys_table",
+      "breakpoints": true
     }
   ]
 }

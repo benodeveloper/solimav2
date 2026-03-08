@@ -1,14 +1,19 @@
 'use client';
 
 import { ImageIcon } from 'lucide-react';
-import { useState, useRef } from 'react';
-import { Channel } from '@/src/db/schema';
+import { useState, useRef, useMemo } from 'react';
+import { Channel, Media } from '@/src/db/schema';
+import { MediaCollection } from '@/src/enums/media-collection.enum';
 import Button from '@/src/components/ui/Button';
 import Input from '@/src/components/ui/Input';
 import { createChannel, updateChannelAction } from '@/src/actions/channel.actions';
 
+interface ChannelWithMedia extends Channel {
+  media?: Media[];
+}
+
 interface ChannelFormProps {
-  channel?: Channel;
+  channel?: ChannelWithMedia;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -21,7 +26,21 @@ interface ChannelFormProps {
 export default function ChannelForm({ channel, onSuccess, onCancel }: ChannelFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>((channel as any)?.logo?.thumbnail || null);
+
+  const initialLogo = useMemo(() => {
+    if (!channel?.media) return null;
+    const logoMedia = channel.media.find(m => m.collection_name === MediaCollection.LOGO);
+    if (!logoMedia) return null;
+    
+    try {
+      const conversions = JSON.parse(logoMedia.generated_conversions || '{}');
+      return conversions.thumbnail || conversions.original || `/uploads/${logoMedia.file_name}`;
+    } catch (e) {
+      return `/uploads/${logoMedia.file_name}`;
+    }
+  }, [channel]);
+
+  const [logoPreview, setLogoPreview] = useState<string | null>(initialLogo);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!channel;
 

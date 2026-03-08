@@ -1,11 +1,15 @@
 'use client';
 
-import { Channel } from '@/src/db/schema';
+import { Channel, Media } from '@/src/db/schema';
 import ChannelForm from '@/src/components/dashboard/ChannelForm';
 import { useRouter } from 'next/navigation';
 
+interface ChannelWithMedia extends Channel {
+  media?: Media[];
+}
+
 interface ChannelFormWrapperProps {
-  channel: Channel;
+  channel: ChannelWithMedia;
 }
 
 /**

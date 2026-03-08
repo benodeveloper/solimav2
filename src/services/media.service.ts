@@ -3,7 +3,8 @@ import { media } from '@/src/db/schema';
 import { MediaCollection } from '@/src/enums/media-collection.enum';
 import { eq, and } from 'drizzle-orm';
 import { writeFile, mkdir, unlink } from 'fs/promises';
-import { join } from 'path';
+import { join, extname } from 'path';
+import { getExtensionFromMimeType } from '@/src/lib/utils';
 
 /**
  * Service for polymorphic media management inspired by Spatie Media Library.
@@ -29,8 +30,16 @@ export class MediaService {
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const mimeType = response.headers.get('content-type') || 'image/jpeg';
-      const fileName = `${Date.now()}-from-url-${Math.random().toString(36).substring(7)}`;
+
+      const urlObj = new URL(url);
+      let ext = extname(urlObj.pathname);
+      if (!ext) {
+          ext = getExtensionFromMimeType(mimeType);
+      }
+
+      const fileName = `${Date.now()}-from-url-${Math.random().toString(36).substring(7)}${ext}`;
       const filePath = join(this.UPLOAD_DIR, fileName);
+
 
       await mkdir(this.UPLOAD_DIR, { recursive: true });
       await writeFile(filePath, buffer);

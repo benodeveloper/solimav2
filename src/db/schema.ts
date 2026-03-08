@@ -89,6 +89,30 @@ export const syncTasks = mysqlTable('sync_tasks', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const sources = mysqlTable('sources', {
+  id: serial('id').primaryKey(),
+  streamable_id: int('streamable_id').notNull(),
+  streamable_type: varchar('streamable_type', { length: 255 }).notNull(), // e.g., 'channels'
+  stream_id: varchar('stream_id', { length: 255 }).notNull(),
+  label: varchar('label', { length: 255 }),
+  stream_name: varchar('stream_name', { length: 255 }),
+  lang: varchar('lang', { length: 50 }),
+  quality: varchar('quality', { length: 50 }),
+  extension: varchar('extension', { length: 20 }).default('m3u8'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const apiKeys = mysqlTable('api_keys', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  key: varchar('key', { length: 255 }).notNull().unique(),
+  is_active: boolean('is_active').default(true),
+  last_used_at: timestamp('last_used_at'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -103,3 +127,7 @@ export type Credential = typeof credentials.$inferSelect;
 export type NewCredential = typeof credentials.$inferInsert;
 export type SyncTask = typeof syncTasks.$inferSelect;
 export type NewSyncTask = typeof syncTasks.$inferInsert;
+export type Source = typeof sources.$inferSelect;
+export type NewSource = typeof sources.$inferInsert;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;

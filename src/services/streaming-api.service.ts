@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, AxiosInstance } from 'axios';
+import axios from 'axios';
 
 /**
  * Interfaces for Type Safety
@@ -34,7 +34,7 @@ export interface EpgEntry {
  * Optimized for the player_api.php endpoint.
  */
 export class StreamingApiService {
-  private client: AxiosInstance;
+  private client;
 
   constructor(baseUrl: string, username: string, password: string) {
     this.client = axios.create({
@@ -52,7 +52,7 @@ export class StreamingApiService {
    */
   private async request<T>(action: string, extraParams: Record<string, any> = {}): Promise<T> {
     try {
-      const response: AxiosResponse<T> = await this.client.get('player_api.php', {
+      const response: any = await this.client.get('player_api.php', {
         params: {
           action,
           ...extraParams,
@@ -123,7 +123,7 @@ export class StreamingApiService {
    */
   public async authenticate(): Promise<StreamingAuthResponse> {
     try {
-      const response: AxiosResponse<StreamingAuthResponse> = await this.client.get('player_api.php');
+      const response: any = await this.client.get('player_api.php');
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Unknown Auth Error';

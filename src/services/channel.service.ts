@@ -37,7 +37,7 @@ export class ChannelService {
     ]);
 
     // Attach media and sources for each channel
-    const fullChannels = await Promise.all(items.map(async (channel) => {
+    const fullChannels = await Promise.all(items.map(async (channel: any) => {
       const channelMedia = await MediaService.getMedia(channel.id, 'channels');
       const channelSources = await db.select().from(sources).where(and(
         eq(sources.streamable_id, channel.id),
@@ -46,12 +46,12 @@ export class ChannelService {
 
       return {
         ...channel,
-        media: channelMedia.map(m => ({
+        media: channelMedia.map((m: any) => ({
           collection: m.collection_name,
           file_name: m.file_name,
           conversions: m.generated_conversions ? JSON.parse(m.generated_conversions) : null
         })),
-        sources: channelSources.map(s => ({
+        sources: channelSources.map((s: any) => ({
           label: s.label,
           lang: s.lang,
           quality: s.quality,
@@ -111,7 +111,9 @@ export class ChannelService {
   /**
    * Gets all channels.
    */
-  static async getChannels() {
+  static async getChannels(limit?: number) {
+    if (limit) return await db.select().from(channels).limit(limit);
+
     return await db.select().from(channels);
   }
 
@@ -123,16 +125,16 @@ export class ChannelService {
       .from(channels)
       .where(eq(channels.id, id))
       .limit(1);
-    
+
     if (results.length === 0) return null;
-    
+
     const channel = results[0];
     const media = await MediaService.getMedia(id, 'channels');
     const channelSources = await db.select().from(sources).where(and(
       eq(sources.streamable_id, id),
       eq(sources.streamable_type, 'channels')
     ));
-    
+
     return {
       ...channel,
       media,

@@ -27,13 +27,13 @@ export default function VodCategoryMultiSelect({ selectedCategoryIds, onChange }
   });
 
   const filteredCategories = useMemo(() => {
-    return categories.filter(cat => 
+    return categories.filter((cat: any) =>
       cat.category_name.toLowerCase().includes(search.toLowerCase())
     );
   }, [categories, search]);
 
   const selectedCategories = useMemo(() => {
-    return categories.filter(cat => selectedCategoryIds.includes(cat.id));
+    return categories.filter((cat: any) => selectedCategoryIds.includes(cat.id));
   }, [categories, selectedCategoryIds]);
 
   const toggleCategory = (id: number) => {
@@ -51,7 +51,7 @@ export default function VodCategoryMultiSelect({ selectedCategoryIds, onChange }
 
   return (
     <div className="relative w-full">
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
           "flex min-h-[44px] w-full cursor-pointer flex-wrap items-center gap-1.5 rounded-xl border bg-white px-3 py-2 text-sm transition-all focus-within:ring-4 focus-within:ring-emerald-500/10 shadow-sm",
@@ -60,14 +60,14 @@ export default function VodCategoryMultiSelect({ selectedCategoryIds, onChange }
       >
         {selectedCategories.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
-            {selectedCategories.slice(0, 3).map(cat => (
-              <span 
-                key={cat.id} 
+            {selectedCategories.slice(0, 3).map((cat: any) => (
+              <span
+                key={cat.id}
                 className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
               >
                 {cat.category_name}
-                <X 
-                  className="h-3 w-3 cursor-pointer hover:text-emerald-900" 
+                <X
+                  className="h-3 w-3 cursor-pointer hover:text-emerald-900"
                   onClick={(e) => removeCategory(cat.id, e)}
                 />
               </span>
@@ -101,17 +101,17 @@ export default function VodCategoryMultiSelect({ selectedCategoryIds, onChange }
                 className="w-full rounded-lg border-none bg-slate-50 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
               />
             </div>
-            
+
             <div className="max-h-60 overflow-y-auto custom-scrollbar">
               {filteredCategories.length > 0 ? (
-                filteredCategories.map((cat) => (
+                filteredCategories.map((cat: any) => (
                   <div
                     key={cat.id}
                     onClick={() => toggleCategory(cat.id)}
                     className={clsx(
                       "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
-                      selectedCategoryIds.includes(cat.id) 
-                        ? "bg-emerald-50 text-emerald-700" 
+                      selectedCategoryIds.includes(cat.id)
+                        ? "bg-emerald-50 text-emerald-700"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     )}
                   >
@@ -130,7 +130,7 @@ export default function VodCategoryMultiSelect({ selectedCategoryIds, onChange }
 
             {selectedCategoryIds.length > 0 && (
               <div className="mt-2 border-t border-slate-100 p-2">
-                <button 
+                <button
                   onClick={() => onChange([])}
                   className="w-full rounded-lg py-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 hover:text-red-500 transition-all"
                 >

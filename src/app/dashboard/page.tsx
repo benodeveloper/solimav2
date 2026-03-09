@@ -1,5 +1,4 @@
 import DashboardStats from '@/src/components/dashboard/DashboardStats';
-import { getSession } from '@/src/lib/auth-utils';
 import { ChannelService } from '@/src/services/channel.service';
 import { Radio, PlusCircle } from 'lucide-react';
 import Link from 'next/link';

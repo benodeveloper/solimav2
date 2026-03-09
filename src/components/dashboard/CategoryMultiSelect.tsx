@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, ChevronDown, X, Check, Loader2 } from 'lucide-react';
 import { getPaginatedCategoriesAction } from '@/src/actions/live-stream.actions';
-import { LiveCategory } from '@/src/db/schema';
 import { clsx } from 'clsx';
 import { useQuery } from '@tanstack/react-query';
 
@@ -116,7 +115,7 @@ export default function CategoryMultiSelect({ selectedCategoryIds, onChange }: C
               </div>
             ) : categories.length > 0 ? (
               <div className="space-y-0.5">
-                {categories.map((category) => (
+                {categories.map((category: any) => (
                   <div
                     key={category.id}
                     onClick={() => toggleCategory(category.id)}

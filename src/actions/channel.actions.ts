@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { ChannelService } from '@/src/services/channel.service';
 import { MediaService } from '@/src/services/media.service';
 import { MediaCollection } from '@/src/enums/media-collection.enum';
+import { Channel } from '../db/schema';
 
 /**
  * Server Actions for Channel Management.
@@ -14,13 +15,13 @@ import { MediaCollection } from '@/src/enums/media-collection.enum';
 export async function getChannels() {
   try {
     const channelList = await ChannelService.getChannels();
-    
+
     // Attach first media (logo) to each channel
-    const channelsWithMedia = await Promise.all(channelList.map(async (channel) => {
+    const channelsWithMedia = await Promise.all(channelList.map(async (channel: Channel) => {
       const logo = await MediaService.getFirstMedia(channel.id, 'channels', MediaCollection.LOGO);
       return { ...channel, logo: logo ? JSON.parse(logo.generated_conversions!) : null };
     }));
-    
+
     return channelsWithMedia;
   } catch (error) {
     return [];
@@ -112,11 +113,11 @@ export async function createChannelFromMultipleStreamsAction(streamIds: number[]
       const remainingStreamIds = streamIds.slice(1);
       const { SourceService } = await import('@/src/services/source.service');
       const { LiveStreamService } = await import('@/src/services/live-stream.service');
-      
+
       const streams = await Promise.all(
         remainingStreamIds.map(id => LiveStreamService.getStreamById(id))
       );
-      
+
       const validStreams = streams.filter(Boolean);
       await SourceService.addSourcesFromStreams(channelId, 'channels', validStreams);
     }

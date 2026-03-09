@@ -27,7 +27,7 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
   const [fetchingTmdb, setFetchingTmdb] = useState(false);
   const [isTmdbModalOpen, setIsTmdbModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState<any>({
     title: movie?.title || '',
     slug: movie?.slug || '',
@@ -70,7 +70,7 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
     setError(null);
 
     try {
-      const details = await getTmdbMovieDetailsAction(tmdbId);
+      const details: any = await getTmdbMovieDetailsAction(tmdbId);
       if (details.error) throw new Error(details.error);
 
       setFormData({
@@ -115,7 +115,7 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
     setError(null);
 
     try {
-      const result = isEditing 
+      const result = isEditing
         ? await updateMovieAction(movie.id, formData)
         : await createMovieAction(formData, tmdbMediaUrls);
 
@@ -142,7 +142,7 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
                 Save time by importing all movie metadata, posters, and backdrops directly from the TMDB database.
               </p>
             </div>
-            <Button 
+            <Button
               onClick={() => setIsTmdbModalOpen(true)}
               className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black uppercase tracking-widest px-8 h-14 rounded-2xl shadow-xl shadow-emerald-500/20 gap-3"
             >
@@ -207,7 +207,6 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
                 type="number"
                 value={formData.runtime}
                 onChange={handleChange}
-                icon={<Clock className="h-4 w-4" />}
               />
 
               <div className="md:col-span-2">
@@ -278,9 +277,9 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Poster Preview</label>
                 <div className="aspect-[2/3] w-full rounded-2xl border-2 border-dashed border-slate-100 bg-slate-50 overflow-hidden relative group">
                   {previews.poster ? (
-                    <img 
-                      src={previews.poster.startsWith('http') ? previews.poster : `/uploads/${previews.poster}`} 
-                      className="h-full w-full object-cover" 
+                    <img
+                      src={previews.poster.startsWith('http') ? previews.poster : `/uploads/${previews.poster}`}
+                      className="h-full w-full object-cover"
                       alt="Poster"
                     />
                   ) : (
@@ -313,16 +312,16 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
               </div>
 
               <div className="flex flex-col gap-3 pt-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={loading || fetchingTmdb}
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest h-14 rounded-2xl shadow-xl shadow-slate-200 gap-2"
                 >
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : isEditing ? 'Save Movie' : 'Create Movie'}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={onCancel}
                   className="w-full h-14 rounded-2xl border-slate-200 font-bold"
                 >
@@ -334,7 +333,7 @@ export default function MovieForm({ movie, onSuccess, onCancel }: MovieFormProps
         </div>
       </form>
 
-      <TmdbSearchModal 
+      <TmdbSearchModal
         isOpen={isTmdbModalOpen}
         onClose={() => setIsTmdbModalOpen(false)}
         onSelect={handleTmdbSelect}

@@ -8,14 +8,14 @@ import {
 } from '@tanstack/react-table';
 import { SyncTask } from '@/src/db/schema';
 import { useState, useMemo } from 'react';
-import { 
-  History, 
-  ChevronLeft, 
-  ChevronRight, 
-  Trash2, 
-  Terminal, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  History,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+  Terminal,
+  CheckCircle2,
+  AlertCircle,
   Loader2,
   Calendar,
   Clock
@@ -47,7 +47,7 @@ export default function SyncTaskTable() {
     refetchInterval: (query) => {
       // Auto-refresh if any task is running
       const items = query.state.data?.items || [];
-      return items.some(t => t.status === 'running' || t.status === 'pending') ? 2000 : false;
+      return items.some((t: any) => t.status === 'running' || t.status === 'pending') ? 2000 : false;
     }
   });
 
@@ -84,8 +84,8 @@ export default function SyncTaskTable() {
             <span className={clsx(
               "text-[10px] font-black uppercase tracking-widest",
               status === 'completed' ? "text-emerald-600" :
-              status === 'failed' ? "text-red-600" :
-              status === 'running' ? "text-emerald-500" : "text-slate-400"
+                status === 'failed' ? "text-red-600" :
+                  status === 'running' ? "text-emerald-500" : "text-slate-400"
             )}>
               {status}
             </span>
@@ -98,7 +98,7 @@ export default function SyncTaskTable() {
       cell: (info) => (
         <div className="flex w-32 items-center gap-3">
           <div className="h-1.5 w-full rounded-full bg-slate-100 ring-1 ring-slate-200">
-            <div 
+            <div
               className={clsx(
                 "h-full rounded-full transition-all duration-500",
                 info.row.original.status === 'failed' ? "bg-red-500" : "bg-emerald-500"

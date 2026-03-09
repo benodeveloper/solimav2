@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { SourceService } from '@/src/services/source.service';
 import { LiveStreamService } from '@/src/services/live-stream.service';
 import { VodStreamService } from '@/src/services/vod-stream.service';
-import { NewSource, Source } from '@/src/db/schema';
+import { NewSource } from '@/src/db/schema';
 
 /**
  * Server Actions for Source Management.
@@ -20,9 +20,9 @@ export async function addSourcesFromStreamsAction(modelId: number, modelType: st
     } else {
       streams = await Promise.all(streamIds.map(id => LiveStreamService.getStreamById(id)));
     }
-    
+
     const validStreams = streams.filter(Boolean);
-    
+
     await SourceService.addSourcesFromStreams(modelId, modelType, validStreams);
     revalidatePath(`/dashboard/${modelType}/${modelId}/edit`);
     return { success: true };
@@ -77,12 +77,12 @@ export async function getStreamUrlAction(streamId: string, extension: string = '
     if (!creds) throw new Error('No credentials found');
 
     const host = creds.host.replace(/\/$/, '');
-    
+
     if (modelType === 'movies') {
       const ext = extension || 'mp4';
       return `${host}/movie/${creds.username}/${creds.password}/${streamId}.${ext}`;
     }
-    
+
     return `${host}/live/${creds.username}/${creds.password}/${streamId}.${extension}`;
   } catch (error) {
     console.error('Stream URL Error:', error);

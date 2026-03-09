@@ -32,7 +32,7 @@ export default function TmdbSearchModal({ isOpen, onClose, onSelect }: TmdbSearc
     setLoading(true);
     setHasSearched(true);
     try {
-      const data = await searchTmdbMoviesAction(query);
+      const data: any = await searchTmdbMoviesAction(query);
       if (data.results) {
         setResults(data.results);
       }

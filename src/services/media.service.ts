@@ -4,7 +4,6 @@ import { MediaCollection } from '@/src/enums/media-collection.enum';
 import { eq, and } from 'drizzle-orm';
 import { writeFile, mkdir, unlink } from 'fs/promises';
 import { join, extname } from 'path';
-import { getExtensionFromMimeType } from '@/src/lib/utils';
 
 /**
  * Service for polymorphic media management inspired by Spatie Media Library.
@@ -32,10 +31,7 @@ export class MediaService {
       const mimeType = response.headers.get('content-type') || 'image/jpeg';
 
       const urlObj = new URL(url);
-      let ext = extname(urlObj.pathname);
-      if (!ext) {
-          ext = getExtensionFromMimeType(mimeType);
-      }
+      let ext = extname(urlObj.pathname) || 'png';
 
       const fileName = `${Date.now()}-from-url-${Math.random().toString(36).substring(7)}${ext}`;
       const filePath = join(this.UPLOAD_DIR, fileName);
@@ -84,15 +80,15 @@ export class MediaService {
 
     const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
     const filePath = join(this.UPLOAD_DIR, fileName);
-    
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
+
     await writeFile(filePath, buffer);
 
     // If it's a single-file collection like 'logo', delete previous one
     if (collection === MediaCollection.LOGO || collection === MediaCollection.AVATAR) {
-        await this.clearMediaCollection(modelId, modelType, collection);
+      await this.clearMediaCollection(modelId, modelType, collection);
     }
 
     // Insert into DB
@@ -119,12 +115,12 @@ export class MediaService {
    */
   static async getMedia(modelId: number, modelType: string, collection?: MediaCollection) {
     const filters = [
-        eq(media.model_id, modelId),
-        eq(media.model_type, modelType)
+      eq(media.model_id, modelId),
+      eq(media.model_type, modelType)
     ];
 
     if (collection) {
-        filters.push(eq(media.collection_name, collection));
+      filters.push(eq(media.collection_name, collection));
     }
 
     return await db.select().from(media).where(and(...filters));
@@ -143,19 +139,19 @@ export class MediaService {
    */
   static async clearMediaCollection(modelId: number, modelType: string, collection: MediaCollection) {
     const items = await this.getMedia(modelId, modelType, collection);
-    
+
     for (const item of items) {
-        try {
-            await unlink(join(this.UPLOAD_DIR, item.file_name));
-        } catch (e) {
-            // File might not exist
-        }
+      try {
+        await unlink(join(this.UPLOAD_DIR, item.file_name));
+      } catch (e) {
+        // File might not exist
+      }
     }
 
     await db.delete(media).where(and(
-        eq(media.model_id, modelId),
-        eq(media.model_type, modelType),
-        eq(media.collection_name, collection)
+      eq(media.model_id, modelId),
+      eq(media.model_type, modelType),
+      eq(media.collection_name, collection)
     ));
   }
 }

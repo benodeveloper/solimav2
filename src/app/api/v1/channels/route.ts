@@ -39,12 +39,12 @@ export async function GET(request: NextRequest) {
     const baseUrl = process.env.BASE_URL || "http://localhost";
     const items = data.items.map(channel => ({
       ...channel,
-      logo_url: channel.media.find(m => m.collection === 'logo')?.conversions?.thumbnail
-        ? `${baseUrl}${channel.media.find(m => m.collection === 'logo')?.conversions?.thumbnail}`
-        : channel.media.find(m => m.collection === 'logo')
-          ? `${baseUrl}/uploads/${channel.media.find(m => m.collection === 'logo')?.file_name}`
+      logo_url: channel.media.find((m: any) => m.collection === 'logo')?.conversions?.thumbnail
+        ? `${baseUrl}${channel.media.find((m: any) => m.collection === 'logo')?.conversions?.thumbnail}`
+        : channel.media.find((m: any) => m.collection === 'logo')
+          ? `${baseUrl}/uploads/${channel.media.find((m: any) => m.collection === 'logo')?.file_name}`
           : null,
-      sources: channel.sources.map(s => ({
+      sources: channel.sources.map((s: any) => ({
         ...s,
         url: `${creds.host}/live/${creds.username}/${creds.password}/${s.stream_id}.${s.extension}`
       }))

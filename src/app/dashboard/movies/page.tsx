@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { Film, Plus, Search, Loader2, Calendar, Star, MoreVertical, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { Film, Plus, Search, Calendar, Star, Edit2, Trash2 } from 'lucide-react';
 import Button from '@/src/components/ui/Button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPaginatedMoviesAction, deleteMovieAction } from '@/src/actions/movie.actions';

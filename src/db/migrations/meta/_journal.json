@@ -78,6 +78,13 @@
       "when": 1773011083397,
       "tag": "0010_create_vod_streams_table",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1773013049412,
+      "tag": "0011_create_movies_table",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { mysqlTable, serial, varchar, timestamp, text, int, boolean, json, tinyint } from 'drizzle-orm/mysql-core';
+import { mysqlTable, serial, varchar, timestamp, text, int, boolean, json, tinyint, bigint, date, float } from 'drizzle-orm/mysql-core';
 
 export const users = mysqlTable('users', {
   id: serial('id').primaryKey(),
@@ -144,6 +144,32 @@ export const vodStreams = mysqlTable('vod_streams', {
   updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
+export const movies = mysqlTable('movies', {
+  id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+  title: varchar('title', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  overview: text('overview').notNull(),
+  release_date: date('release_date').notNull(),
+  runtime: int('runtime'),
+  tmdb_id: varchar('tmdb_id', { length: 255 }),
+  imdb_id: varchar('imdb_id', { length: 255 }),
+  adult: tinyint('adult').notNull().default(1),
+  site: varchar('site', { length: 255 }),
+  original_language: varchar('original_language', { length: 255 }),
+  budget: bigint('budget', { mode: 'number' }),
+  revenue: bigint('revenue', { mode: 'number' }),
+  vote_average: float('vote_average'),
+  vote_count: bigint('vote_count', { mode: 'number' }),
+  tagline: varchar('tagline', { length: 255 }),
+  status: varchar('status', { length: 255 }).notNull().default('Draft'),
+  trailer_id: bigint('trailer_id', { mode: 'number', unsigned: true }),
+  logo_id: bigint('logo_id', { mode: 'number', unsigned: true }),
+  backdrop_id: bigint('backdrop_id', { mode: 'number', unsigned: true }),
+  poster_id: bigint('poster_id', { mode: 'number', unsigned: true }),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -158,6 +184,8 @@ export type VodCategory = typeof vodCategories.$inferSelect;
 export type NewVodCategory = typeof vodCategories.$inferInsert;
 export type VodStream = typeof vodStreams.$inferSelect;
 export type NewVodStream = typeof vodStreams.$inferInsert;
+export type Movie = typeof movies.$inferSelect;
+export type NewMovie = typeof movies.$inferInsert;
 export type Credential = typeof credentials.$inferSelect;
 export type NewCredential = typeof credentials.$inferInsert;
 export type SyncTask = typeof syncTasks.$inferSelect;

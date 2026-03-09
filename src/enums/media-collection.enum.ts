@@ -6,5 +6,8 @@
 export enum MediaCollection {
   LOGO = 'logo',
   COVER = 'cover',
-  AVATAR = 'avatar'
+  AVATAR = 'avatar',
+  POSTER = 'poster',
+  BACKDROP = 'backdrop',
+  TRAILER = 'trailer'
 }

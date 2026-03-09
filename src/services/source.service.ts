@@ -49,7 +49,7 @@ export class SourceService {
   }
 
   /**
-   * Adds multiple sources from live streams to a model.
+   * Adds multiple sources from streams to a model.
    */
   static async addSourcesFromStreams(modelId: number, modelType: string, streams: any[]) {
     const newSources = streams.map(stream => ({
@@ -58,7 +58,7 @@ export class SourceService {
       stream_id: stream.stream_id.toString(),
       label: 'Source',
       stream_name: stream.name,
-      extension: 'm3u8',
+      extension: modelType === 'movies' ? (stream.container_extension || 'mp4') : 'm3u8',
     }));
 
     if (newSources.length > 0) {

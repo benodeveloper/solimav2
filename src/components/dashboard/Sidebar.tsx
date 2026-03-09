@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Tv,
   History,
-  Film
+  Film,
+  Clapperboard
 } from 'lucide-react';
 import { logout } from '@/src/actions/auth.actions';
 import { cn } from '@/src/lib/utils';
@@ -37,6 +38,7 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Channels', href: '/dashboard/channels', icon: Radio },
+    { name: 'Movies', href: '/dashboard/movies', icon: Clapperboard },
     { name: 'Live Streams', href: '/dashboard/live-streams', icon: Tv },
     { name: 'VOD Streams', href: '/dashboard/vod-streams', icon: Film },
     { name: 'Sync Tasks', href: '/dashboard/sync-tasks', icon: History },

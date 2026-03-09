@@ -12,6 +12,7 @@ import {
   updateSourceAction, 
   deleteSourceAction, 
   searchLiveStreamsAction,
+  searchVodStreamsAction,
   getStreamUrlAction
 } from '@/src/actions/source.actions';
 import { useRouter } from 'next/navigation';
@@ -31,7 +32,7 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
   const router = useRouter();
   const [sources, setSources] = useState<Source[]>(initialSources);
   const [search, setSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<{ stream: LiveStream; category: LiveCategory | null }[]>([]);
+  const [searchResults, setSearchResults] = useState<{ stream: any; category: any | null }[]>([]);
   const [selectedStreamIds, setSelectedStreamIds] = useState<number[]>([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -54,7 +55,9 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
     const timer = setTimeout(async () => {
       if (search.length >= 2) {
         setLoadingSearch(true);
-        const results = await searchLiveStreamsAction(search);
+        const results = modelType === 'movies' 
+          ? await searchVodStreamsAction(search)
+          : await searchLiveStreamsAction(search);
         setSearchResults(results.items);
         setLoadingSearch(false);
       } else {
@@ -63,10 +66,10 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, modelType]);
 
   const handlePlayStream = async (streamId: string, title: string, extension: string = 'm3u8') => {
-    const url = await getStreamUrlAction(streamId, extension);
+    const url = await getStreamUrlAction(streamId, extension, modelType);
     if (url) {
       setPlayerConfig({ isOpen: true, url, title });
     } else {
@@ -87,7 +90,7 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
   const handleDeleteSource = async (id: number) => {
     if (!confirm('Are you sure you want to delete this source?')) return;
     setLoadingAction(true);
-    await deleteSourceAction(id, modelId);
+    await deleteSourceAction(id, modelId, modelType);
     setLoadingAction(false);
     router.refresh();
   };
@@ -105,7 +108,7 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
   const handleSaveSource = async () => {
     if (!editingSource || !editingSource.id) return;
     setLoadingAction(true);
-    await updateSourceAction(editingSource.id, editingSource);
+    await updateSourceAction(editingSource.id, editingSource, modelId, modelType);
     setExpandedSourceId(null);
     setEditingSource(null);
     setLoadingAction(false);
@@ -315,7 +318,11 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button
-                            onClick={() => handlePlayStream(stream.stream_id, stream.name, 'm3u8')}
+                            onClick={() => handlePlayStream(
+                              stream.stream_id, 
+                              stream.name, 
+                              modelType === 'movies' ? (stream.container_extension || 'mp4') : 'm3u8'
+                            )}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-all ml-auto"
                             title="Preview Stream"
                           >
@@ -336,7 +343,7 @@ export default function SourceManagement({ modelId, modelType, initialSources }:
                   disabled={selectedStreamIds.length === 0 || loadingAction}
                   className="bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-200"
                 >
-                  {loadingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-2" /> Add Selected to Channel</>}
+                  {loadingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-2" /> Add Selected to {modelType === 'movies' ? 'Movie' : 'Channel'}</>}
                 </Button>
               </div>
             </div>
